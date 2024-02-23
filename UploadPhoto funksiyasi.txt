@@ -1,0 +1,25 @@
+ uploadPhoto() async{
+    final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+    final ImagePicker imagePicker = ImagePicker();
+    XFile? xFile;
+    PermissionStatus permissionStatus = await Permission.photos.request();
+    if(permissionStatus.isGranted){
+      try {
+        xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+        File file = File(xFile?.path??"");
+        Reference ref = firebaseStorage.ref("image").child("${file.path.split("/").last}");
+        print(ref);
+        UploadTask snapshot = ref.putFile(file);
+        snapshot.then((value) async{
+          if(value.state == TaskState.success){
+            saveLink(ref);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Yuklandi ✔")));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
+          }
+          });
+      } catch(e){
+        print(e.toString());
+      }
+    }
+  }
